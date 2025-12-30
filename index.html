@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Zone</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #1a1a2d; color: white; text-align: center; padding: 20px; }
+        .container { max-width: 400px; margin: auto; }
+        .card { background: #16213e; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        h2 { color: #0f3460; background: #e94560; display: inline-block; padding: 5px 15px; border-radius: 5px; }
+        button { background: #e94560; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        button:active { transform: scale(0.95); }
+        input { padding: 10px; border-radius: 5px; border: none; width: 70%; margin: 5px 0; }
+        
+        /* Animations */
+        .dice { font-size: 50px; display: inline-block; transition: transform 0.5s; }
+        .coin { width: 60px; height: 60px; background: gold; border-radius: 50%; display: inline-block; line-height: 60px; color: black; font-weight: bold; border: 4px solid orange; }
+        .spin-wheel { font-size: 50px; display: inline-block; transition: transform 2s ease-out; }
+        
+        .shake { animation: shake 0.5s infinite; }
+        @keyframes shake { 0% { transform: rotate(0deg); } 25% { transform: rotate(10deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(-10deg); } 100% { transform: rotate(0deg); } }
+        
+        .flip { animation: flip 1s ease-in-out; }
+        @keyframes flip { 0% { transform: rotateY(0); } 100% { transform: rotateY(720deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎮 গেম জোন</h1>
+    <p>খেলে জিতে নিন পয়েন্ট!</p>
+
+    <div class="card">
+        <h3>🎲 লাকি ডাইস</h3>
+        <p>খরচ: ১০ পয়েন্ট | জিতলে: ২০ পয়েন্ট</p>
+        <div id="diceIcon" class="dice">🎲</div><br>
+        <button onclick="playDice()">রোল করুন</button>
+        <p id="diceResult"></p>
+    </div>
+
+    <div class="card">
+        <h3>🪙 কয়েন টস</h3>
+        <p>খরচ: ২০ পয়েন্ট | জিতলে: ৪০ পয়েন্ট</p>
+        <div id="coinIcon" class="coin">?</div><br>
+        <button onclick="playToss()">টস করুন</button>
+        <p id="tossResult"></p>
+    </div>
+
+    <div class="card">
+        <h3>🎰 লাকি স্পিন</h3>
+        <p>খরচ: ২০ পয়েন্ট | উইন: ০-১০০</p>
+        <div id="spinIcon" class="spin-wheel">🎡</div><br>
+        <button onclick="playSpin()">স্পিন করুন</button>
+        <p id="spinResult"></p>
+    </div>
+
+    <div class="card">
+        <h3>❤️ লাভ ক্যালকুলেটর</h3>
+        <p>খরচ: ৫ পয়েন্ট</p>
+        <input type="text" id="name1" placeholder="আপনার নাম">
+        <input type="text" id="name2" placeholder="পার্টনারের নাম"><br>
+        <button onclick="playLove()">হিসাব করুন</button>
+        <p id="loveResult"></p>
+    </div>
+</div>
+
+<script>
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function sendDataToBot(game, result, points, message) {
+        // ৩ সেকেন্ড পর ডাটা বোটে পাঠাবে যাতে ইউজার অ্যানিমেশন দেখতে পায়
+        setTimeout(() => {
+            const data = JSON.stringify({
+                game: game,
+                points: points,
+                msg: message
+            });
+            tg.sendData(data);
+        }, 2000);
+    }
+
+    function playDice() {
+        let dice = document.getElementById("diceIcon");
+        let resText = document.getElementById("diceResult");
+        dice.classList.add("shake");
+        resText.innerText = "ঘুরছে...";
+        
+        setTimeout(() => {
+            dice.classList.remove("shake");
+            let score = Math.floor(Math.random() * 6) + 1;
+            let win = score >= 4;
+            let points = win ? 20 : -10; // -10 for cost, +20 win means net +10
+            // Logic: Cost is deducted in bot, so sending net change
+            // Simplified: We assume bot checks balance first. 
+            // Here we send ONLY Win/Loss amount instruction.
+            
+            dice.innerText = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"][score-1];
+            resText.innerText = `রেজাল্ট: ${score} (${win ? "জিতেছেন!" : "হেরেছেন"})`;
+            
+            if(win) sendDataToBot("dice", "win", 10, `🎲 ডাইস রোল: ${score} (জিতেছেন! +10)`);
+            else sendDataToBot("dice", "loss", -10, `🎲 ডাইস রোল: ${score} (হেরেছেন! -10)`);
+        }, 1000);
+    }
+
+    function playToss() {
+        let coin = document.getElementById("coinIcon");
+        let resText = document.getElementById("tossResult");
+        coin.classList.add("flip");
+        resText.innerText = "টস হচ্ছে...";
+
+        setTimeout(() => {
+            coin.classList.remove("flip");
+            let isHead = Math.random() < 0.5;
+            let result = isHead ? "Head" : "Tail";
+            let userChoice = "Head"; // Default assumption user wants Head
+            
+            coin.innerText = isHead ? "H" : "T";
+            // Random win/loss logic
+            let win = Math.random() < 0.5; 
+            resText.innerText = `ফলাফল: ${result} (${win ? "জিতেছেন!" : "হেরেছেন"})`;
+
+            if(win) sendDataToBot("toss", "win", 20, `🪙 টস রেজাল্ট: ${result} (জিতেছেন! +20)`);
+            else sendDataToBot("toss", "loss", -20, `🪙 টস রেজাল্ট: ${result} (হেরেছেন! -20)`);
+        }, 1000);
+    }
+
+    function playSpin() {
+        let wheel = document.getElementById("spinIcon");
+        let resText = document.getElementById("spinResult");
+        wheel.style.transform = "rotate(1080deg)";
+        resText.innerText = "ঘুরছে...";
+
+        setTimeout(() => {
+            wheel.style.transform = "rotate(0deg)";
+            let prizes = [-20, 10, 50, -20, 100, 0];
+            let win = prizes[Math.floor(Math.random() * prizes.length)];
+            
+            resText.innerText = `আপনি পেয়েছেন: ${win} পয়েন্ট`;
+            sendDataToBot("spin", "win", win, `🎰 স্পিন রেজাল্ট: ${win} পয়েন্ট`);
+        }, 2000);
+    }
+
+    function playLove() {
+        let n1 = document.getElementById("name1").value;
+        let n2 = document.getElementById("name2").value;
+        if(!n1 || !n2) { alert("নাম দিন!"); return; }
+
+        let score = Math.floor(Math.random() * 40) + 60;
+        document.getElementById("loveResult").innerText = `❤️ ভালোবাসা: ${score}%`;
+        
+        sendDataToBot("love", "calc", -5, `❤️ ${n1} + ${n2} = ${score}% লাভ! (-5 পয়েন্ট)`);
+    }
+</script>
+
+</body>
+</html>

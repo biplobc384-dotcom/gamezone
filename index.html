@@ -3,410 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Arcade Ultimate</title>
+    <title>Cyber Arcade Pro</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --neon-blue: #00f3ff;
-            --neon-pink: #ff00ff;
-            --neon-purple: #bc13fe;
-            --neon-green: #0aff0a;
-            --neon-yellow: #ffd700;
-            --neon-red: #ff0055;
-            --bg-dark: #050510;
-            --card-bg: rgba(20, 20, 35, 0.8);
+            --neon-blue: #00f3ff; --neon-pink: #ff00ff; --neon-green: #0aff0a;
+            --bg-dark: #050510; --card-bg: rgba(20, 20, 35, 0.9);
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-
         body {
-            font-family: 'Poppins', sans-serif;
-            margin: 0; padding: 15px;
-            background-color: var(--bg-dark);
-            color: white; min-height: 100vh; text-align: center;
-            overflow-x: hidden; padding-bottom: 100px;
+            font-family: 'Poppins', sans-serif; margin: 0; padding: 0;
+            background-color: var(--bg-dark); color: white; min-height: 100vh;
+            overflow-x: hidden; text-align: center;
         }
 
-        /* --- BACKGROUND --- */
-        .bg-fixed { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: radial-gradient(circle at 50% -20%, #1a1a3a 0%, #000 100%); }
-        .cyber-grid {
-            position: fixed; bottom: 0; left: 0; width: 200%; height: 60%;
-            background: linear-gradient(transparent 0%, rgba(0, 243, 255, 0.1) 1%, transparent 2%), linear-gradient(90deg, transparent 0%, rgba(188, 19, 254, 0.1) 1%, transparent 2%);
-            background-size: 40px 40px; transform: perspective(300px) rotateX(60deg);
-            animation: gridMove 10s linear infinite; z-index: -1; pointer-events: none;
-            mask-image: linear-gradient(to top, black 20%, transparent 100%);
+        /* --- UI LAYOUT --- */
+        .header-bar {
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 20px; z-index: 100; border-bottom: 1px solid var(--neon-blue);
         }
-        @keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 0 40px; } }
+        .total-score { font-family: 'Orbitron'; font-size: 1.2rem; color: var(--neon-green); }
+        .save-btn {
+            background: linear-gradient(90deg, #ff0055, #ff00cc); color: white;
+            border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold;
+            font-size: 0.8rem; cursor: pointer;
+        }
 
-        /* --- UI ELEMENTS --- */
-        h1 { font-family: 'Orbitron'; font-size: 2.2rem; margin: 0; background: linear-gradient(to right, var(--neon-blue), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 15px var(--neon-blue); }
-        .container { max-width: 600px; margin: 20px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
-        .card {
-            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between;
-            transition: 0.2s; backdrop-filter: blur(5px);
+        /* MENU VIEW */
+        #menu-view { padding: 80px 15px 100px; display: block; animation: fadeIn 0.5s; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        
+        .game-card {
+            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px; padding: 15px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; height: 140px;
+            transition: 0.2s; cursor: pointer; position: relative; overflow: hidden;
         }
-        .card.wide { grid-column: 1 / -1; }
-        .card:active { transform: scale(0.98); border-color: var(--neon-green); }
-        
-        h3 { font-family: 'Rajdhani'; font-size: 1.1rem; margin: 0 0 8px; color: #fff; font-weight: 700; }
-        .badge { font-size: 0.65rem; color: #aaa; margin-bottom: 8px; display: block; }
-        
-        .game-area { min-height: 60px; display: flex; align-items: center; justify-content: center; flex-direction: column; margin-bottom: 8px; }
+        .game-card:active { transform: scale(0.95); border-color: var(--neon-blue); }
+        .game-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .game-title { font-size: 0.9rem; font-weight: bold; }
+        .game-cost { font-size: 0.7rem; color: #aaa; margin-top: 5px; }
+
+        /* GAME VIEW (FULL SCREEN) */
+        #game-view {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); z-index: 200; display: none;
+            flex-direction: column; padding: 20px;
+            animation: slideUp 0.3s;
+        }
+        .back-btn {
+            align-self: flex-start; background: rgba(255,255,255,0.1); border: 1px solid white;
+            color: white; padding: 8px 20px; border-radius: 20px; margin-bottom: 20px;
+            cursor: pointer; font-size: 0.9rem;
+        }
+        .active-game-container {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: var(--card-bg); border-radius: 20px; border: 1px solid var(--neon-blue);
+            padding: 20px; width: 100%; box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+        }
+
+        /* Common Game Elements */
         .btn {
-            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); border: none; padding: 8px; width: 100%;
-            border-radius: 6px; color: white; font-weight: bold; font-family: 'Orbitron'; font-size: 0.8rem; cursor: pointer;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+            border: none; padding: 15px; width: 80%; border-radius: 10px;
+            color: white; font-weight: bold; font-size: 1.1rem; margin-top: 20px;
+            font-family: 'Orbitron';
         }
-        .btn:disabled { background: #333; opacity: 0.5; }
-        input.cyber-input { background: #111; border: 1px solid #444; color: white; padding: 5px; width: 100%; text-align: center; border-radius: 4px; font-family: 'Orbitron'; margin-bottom: 5px; }
+        .result-disp { font-size: 1.2rem; margin: 15px 0; min-height: 30px; }
+        input.cyber-input {
+            background: #111; border: 1px solid #555; padding: 10px; color: white;
+            text-align: center; font-size: 1.2rem; border-radius: 8px; width: 80%;
+        }
 
-        /* --- SPECIFIC GAME STYLES --- */
-        /* Dice */ .dice-box { font-size: 2.5rem; display: flex; gap: 20px; }
-        /* Emoji */ .emoji-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; } .emoji-cell { font-size: 1.5rem; padding: 5px; background: rgba(255,255,255,0.05); border-radius: 4px; }
-        /* Time */ .timer-disp { font-family: 'Orbitron'; font-size: 1.8rem; color: var(--neon-yellow); }
-        /* Color */ .color-word { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
-        /* Num Flow */ .num-grid { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; } .num-btn { width: 30px; height: 30px; background: #333; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-weight: bold; }
+        /* Specific Game Styles */
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 200px; }
+        .ttt-cell { height: 60px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+        .mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; width: 220px; }
+        .mem-card { height: 50px; background: rgba(255,255,255,0.1); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
 
         /* Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
-        .modal-box { background: #121225; border: 2px solid var(--neon-blue); width: 80%; max-width: 300px; padding: 20px; border-radius: 15px; text-align: center; animation: zoomIn 0.3s; }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 300; display: none;
+            align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: #1a1a2e; border: 2px solid var(--neon-green);
+            padding: 30px; border-radius: 20px; width: 85%; text-align: center;
+        }
 
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="bg-fixed"></div> <div class="cyber-grid"></div>
-    <h1>CYBER ARCADE</h1>
-    <div style="font-size:0.8rem; color:#888; margin-bottom:10px;">20 Games • Play to Earn</div>
+    <div class="header-bar">
+        <div class="total-score">💰 <span id="sessionScore">0</span></div>
+        <button class="save-btn" onclick="exitApp()">CLAIM & EXIT</button>
+    </div>
 
-    <div class="container animate__animated animate__fadeIn">
-
-        <div class="card">
-            <h3>🎲 Dice War</h3>
-            <span class="badge">Win: 20 | Cost: 10</span>
-            <div class="game-area dice-box">
-                <div id="dUser" style="color:var(--neon-blue)">?</div>
-                <div style="font-size:1rem; align-self:center">VS</div>
-                <div id="dCpu" style="color:var(--neon-red)">?</div>
+    <div id="menu-view">
+        <h2 style="margin-bottom:20px;">CHOOSE GAME</h2>
+        <div class="grid">
+            <div class="game-card" onclick="openGame('lucky')">
+                <div class="game-icon">🎰</div>
+                <div class="game-title">Lucky 7</div>
+                <div class="game-cost">Win: 50 | Cost: 10</div>
             </div>
-            <button class="btn" onclick="playDiceWar()">ROLL</button>
-        </div>
-
-        <div class="card">
-            <h3>🧐 Odd Emoji</h3>
-            <span class="badge">Win: 15 | Cost: 5</span>
-            <div class="game-area" id="emojiArea">Tap Start</div>
-            <button class="btn" id="btnEmoji" onclick="initEmoji()">START</button>
-        </div>
-
-        <div class="card">
-            <h3>⏱️ Time Stop</h3>
-            <span class="badge">Target: 1.00s | Win: 30</span>
-            <div class="game-area timer-disp" id="stopTimer">0.00</div>
-            <button class="btn" id="btnTime" onclick="playTimeStop()">START</button>
-        </div>
-
-        <div class="card">
-            <h3>🎨 Color Trap</h3>
-            <span class="badge">True or False? | Win: 10</span>
-            <div class="game-area">
-                <div id="colText" class="color-word">READY</div>
-                <div style="display:flex; gap:10px; width:100%">
-                    <button class="btn" style="background:#2ecc71" onclick="checkColor(true)">✔</button>
-                    <button class="btn" style="background:#e74c3c" onclick="checkColor(false)">✖</button>
-                </div>
+            <div class="game-card" onclick="openGame('math')">
+                <div class="game-icon">🧮</div>
+                <div class="game-title">Math Quiz</div>
+                <div class="game-cost">Win: 10 | Cost: 5</div>
             </div>
-            <button class="btn" style="margin-top:5px; background:#333" onclick="initColor()">NEW ROUND</button>
-        </div>
-
-        <div class="card">
-            <h3>🔢 1-2-3 Flow</h3>
-            <span class="badge">Tap in Order | Win: 20</span>
-            <div class="game-area" id="numArea">
-                <div class="num-grid" id="numGrid"></div>
+            <div class="game-card" onclick="openGame('ttt')">
+                <div class="game-icon">❌⭕</div>
+                <div class="game-title">Tic Tac Toe</div>
+                <div class="game-cost">Win: 20 | Cost: 10</div>
             </div>
-            <button class="btn" id="btnNum" onclick="initNumFlow()">PLAY</button>
-        </div>
-
-        <div class="card">
-            <h3>🧠 Memory</h3>
-            <span class="badge">Win: 40 | Cost: 15</span>
-            <div class="game-area" id="memGrid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:2px; width:100%"></div>
-            <button class="btn" onclick="initMemory()">START</button>
-        </div>
-
-        <div class="card">
-            <h3>🔴 Simon</h3>
-            <span class="badge">Win: 30 | Cost: 10</span>
-            <div class="game-area" style="display:grid; grid-template-columns:1fr 1fr; gap:5px; width:80px">
-                <div id="s1" style="height:35px; background:red; opacity:0.3"></div><div id="s2" style="height:35px; background:blue; opacity:0.3"></div>
-                <div id="s3" style="height:35px; background:green; opacity:0.3"></div><div id="s4" style="height:35px; background:yellow; opacity:0.3"></div>
+            <div class="game-card" onclick="openGame('memory')">
+                <div class="game-icon">🧠</div>
+                <div class="game-title">Memory</div>
+                <div class="game-cost">Win: 40 | Cost: 20</div>
             </div>
-            <button class="btn" id="btnSimon" onclick="initSimon()">PLAY</button>
-        </div>
-
-        <div class="card">
-            <h3>🎯 Precision</h3>
-            <span class="badge">Stop in Green | Win: 20</span>
-            <div class="game-area" style="width:100%; height:15px; background:#333; position:relative">
-                <div style="position:absolute; left:40%; width:20%; height:100%; background:rgba(0,255,0,0.5)"></div>
-                <div id="precMark" style="position:absolute; left:0; width:4px; height:100%; background:#fff"></div>
+            <div class="game-card" onclick="openGame('spin')">
+                <div class="game-icon">🎡</div>
+                <div class="game-title">Spin Wheel</div>
+                <div class="game-cost">Cost: 20</div>
             </div>
-            <button class="btn" id="btnPrec" onclick="playPrec()">START</button>
-        </div>
-
-        <div class="card">
-            <h3>⚡ Reflex</h3>
-            <span class="badge">Tap Green | Win: 20</span>
-            <div class="game-area"><div id="refBox" style="width:40px; height:40px; background:#333; border-radius:50%"></div></div>
-            <button class="btn" id="btnRef" onclick="initRef()">START</button>
-        </div>
-
-        <div class="card">
-            <h3>📈 High/Low</h3>
-            <span class="badge">Next Num? | Win: 10</span>
-            <div class="game-area">
-                <div id="hlNum" style="font-size:1.5rem; font-weight:bold">50</div>
-                <div style="display:flex; gap:5px; margin-top:5px">
-                    <button class="btn" onclick="playHL('high')">⬆</button><button class="btn" onclick="playHL('low')">⬇</button>
-                </div>
+             <div class="game-card" onclick="openGame('dice')">
+                <div class="game-icon">🎲</div>
+                <div class="game-title">Dice War</div>
+                <div class="game-cost">Win: 20 | Cost: 10</div>
+            </div>
+             <div class="game-card" onclick="openGame('clicker')">
+                <div class="game-icon">🖱️</div>
+                <div class="game-title">Fast Click</div>
+                <div class="game-cost">Win: 15 | Free</div>
+            </div>
+             <div class="game-card" onclick="openGame('rps')">
+                <div class="game-icon">👊</div>
+                <div class="game-title">RPS Duel</div>
+                <div class="game-cost">Win: 15 | Cost: 5</div>
             </div>
         </div>
+        <div style="margin-top: 30px; font-size: 0.8rem; color: #666;">More games coming soon...</div>
+    </div>
 
-        <div class="card">
-            <h3>🧮 Math</h3>
-            <span class="badge">Solve | Win: 5</span>
-            <div class="game-area"><div id="mQ">? + ?</div><input id="mAns" class="cyber-input" type="number"></div>
-            <button class="btn" onclick="checkMath()">SUBMIT</button>
+    <div id="game-view">
+        <button class="back-btn" onclick="closeGame()">⬅ BACK TO MENU</button>
+        
+        <div id="game-lucky" class="active-game-container" style="display:none;">
+            <h1>🎰 Lucky 7</h1>
+            <p>Guess a number between 1-10</p>
+            <input type="number" id="luckyIn" class="cyber-input" placeholder="?">
+            <button class="btn" onclick="playLucky()">GUESS (-10)</button>
         </div>
 
-        <div class="card">
-            <h3>👊 RPS</h3>
-            <span class="badge">Win: 15 | Cost: 5</span>
-            <div class="game-area" style="font-size:1.5rem; display:flex; gap:10px">
-                <div onclick="playRPS('r')">👊</div><div onclick="playRPS('p')">✋</div><div onclick="playRPS('s')">✌</div>
+        <div id="game-math" class="active-game-container" style="display:none;">
+            <h1>🧮 Math Quiz</h1>
+            <h2 id="mathQ" style="font-size:2.5rem; margin:20px 0;">10 + 5</h2>
+            <input type="number" id="mathIn" class="cyber-input" placeholder="Answer">
+            <button class="btn" onclick="checkMath()">SUBMIT (-5)</button>
+        </div>
+
+        <div id="game-ttt" class="active-game-container" style="display:none;">
+            <h1>❌⭕ Tic Tac Toe</h1>
+            <div class="ttt-grid" id="tttGrid"></div>
+            <button class="btn" onclick="initTTT()">RESTART (-10)</button>
+        </div>
+
+        <div id="game-memory" class="active-game-container" style="display:none;">
+            <h1>🧠 Memory</h1>
+            <div class="mem-grid" id="memGrid"></div>
+            <button class="btn" onclick="initMemory()">START (-20)</button>
+        </div>
+
+        <div id="game-spin" class="active-game-container" style="display:none;">
+            <h1>🎡 Fortune Wheel</h1>
+            <div id="wheel" style="width:150px; height:150px; border-radius:50%; background:conic-gradient(red,blue,green,gold,purple); border:5px solid white; transition: 3s ease-out;"></div>
+            <div style="width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-top:20px solid white; position:relative; top:-155px; z-index:5;"></div>
+            <button class="btn" onclick="playSpin()">SPIN (-20)</button>
+        </div>
+
+        <div id="game-dice" class="active-game-container" style="display:none;">
+            <h1>🎲 Dice War</h1>
+            <div style="display:flex; gap:30px; font-size:3rem; margin:20px 0;">
+                <div style="color:cyan" id="d1">?</div> <div>VS</div> <div style="color:red" id="d2">?</div>
             </div>
+            <button class="btn" onclick="playDice()">ROLL (-10)</button>
         </div>
 
-        <div class="card">
-            <h3>🦠 Virus</h3>
-            <span class="badge">Smash 8 | Win: 20</span>
-            <div class="game-area" id="vGrid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:3px; width:100%"></div>
-            <button class="btn" id="btnVirus" onclick="initVirus()">START</button>
+        <div id="game-clicker" class="active-game-container" style="display:none;">
+            <h1>🖱️ Fast Clicker</h1>
+            <p>Click 30 times in 3s!</p>
+            <h1 id="clkScore" style="font-size:4rem; color:lime">0</h1>
+            <button class="btn" id="btnClick" onmousedown="tapClick()">TAP TAP!</button>
         </div>
 
-        <div class="card">
-            <h3>🎰 Lucky 7</h3>
-            <span class="badge">1-10 | Win: 50</span>
-            <div class="game-area"><input id="luckyIn" class="cyber-input" type="number" placeholder="Num"></div>
-            <button class="btn" onclick="playLucky()">GUESS</button>
-        </div>
-
-        <div class="card">
-            <h3>💎 Slots</h3>
-            <span class="badge">Jackpot: 100</span>
-            <div class="game-area" style="font-size:1.2rem"><span id="sl1">7</span> <span id="sl2">7</span> <span id="sl3">7</span></div>
-            <button class="btn" id="btnSlot" onclick="playSlot()">SPIN</button>
-        </div>
-
-        <div class="card">
-            <h3>⌨️ Typer</h3>
-            <span class="badge">Speed | Win: 10</span>
-            <div class="game-area"><div id="tWord" style="color:cyan">READY</div><input id="tIn" class="cyber-input"></div>
-            <button class="btn" onclick="initType()">START</button>
-        </div>
-
-        <div class="card">
-            <h3>🖱️ Clicker</h3>
-            <span class="badge">30 Clicks | Win: 15</span>
-            <div class="game-area" id="clkCnt" style="font-size:1.5rem">0</div>
-            <button class="btn" id="btnClk" onmousedown="tapClick()">TAP</button>
-        </div>
-
-        <div class="card">
-            <h3>❌⭕ TTT</h3>
-            <span class="badge">Win: 20</span>
-            <div class="game-area" id="ttt" style="display:grid; grid-template-columns:repeat(3,1fr); gap:2px; width:80px"></div>
-            <button class="btn" onclick="initTTT()">RESET</button>
-        </div>
-
-        <div class="card">
-            <h3>🎡 Wheel</h3>
-            <span class="badge">Cost: 20</span>
-            <div class="game-area"><div id="whl" style="width:50px; height:50px; border-radius:50%; background:conic-gradient(red,blue,green,gold); border:2px solid #fff"></div></div>
-            <button class="btn" id="btnWhl" onclick="spinWhl()">SPIN</button>
-        </div>
-
-        <div class="card wide">
-            <h3>🎫 Scratch</h3>
-            <span class="badge">Scratch & Win | Cost: 20</span>
-            <div class="game-area" style="position:relative; height:50px; width:100%">
-                <div id="scrPrz" style="position:absolute; width:100%; text-align:center; top:15px">?</div>
-                <canvas id="scrCv" width="300" height="50" style="position:absolute; left:0; top:0"></canvas>
+        <div id="game-rps" class="active-game-container" style="display:none;">
+            <h1>👊 RPS Duel</h1>
+            <div style="font-size:3rem; display:flex; gap:15px; margin:20px 0;">
+                <div onclick="playRPS('r')">👊</div>
+                <div onclick="playRPS('p')">✋</div>
+                <div onclick="playRPS('s')">✌️</div>
             </div>
-            <button class="btn" onclick="initScr()">NEW</button>
+            <div id="rpsRes">Choose Move</div>
         </div>
 
     </div>
 
     <div class="modal-overlay" id="modal">
         <div class="modal-box">
-            <h2 id="mHead" style="color:#fff; margin:0">RESULT</h2>
-            <div id="mPts" style="font-size:2rem; margin:10px 0; font-weight:bold">+10</div>
-            <p id="mMsg" style="color:#aaa; font-size:0.8rem">Details</p>
-            <button class="btn" onclick="closeModal()">OK</button>
+            <h1 id="mHead">WIN!</h1>
+            <h2 id="mPts" style="font-size:2.5rem; margin:10px 0;">+50</h2>
+            <p id="mMsg">You are lucky!</p>
+            <button class="btn" onclick="hideModal()">CONTINUE PLAYING</button>
         </div>
     </div>
 
 <script>
-    const tg = window.Telegram.WebApp; tg.expand();
-    const haptic = (s) => tg.HapticFeedback && tg.HapticFeedback.impactOccurred(s || 'light');
-    
-    function showModal(h,p,m,win) {
-        document.getElementById('mHead').innerText = h;
-        document.getElementById('mPts').innerText = p>0 ? `+${p}` : p;
-        document.getElementById('mPts').style.color = win ? 'var(--neon-green)' : 'var(--neon-red)';
-        document.getElementById('mMsg').innerText = m;
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    let sessionPoints = 0;
+
+    // --- NAVIGATION ---
+    function openGame(id) {
+        document.getElementById('menu-view').style.display = 'none';
+        document.getElementById('game-view').style.display = 'flex';
+        // Hide all games
+        document.querySelectorAll('.active-game-container').forEach(el => el.style.display = 'none');
+        // Show selected
+        document.getElementById('game-'+id).style.display = 'flex';
+        
+        // Auto init some games
+        if(id === 'math') initMath();
+        if(id === 'ttt') initTTT();
+        if(id === 'memory') initMemory();
+        if(id === 'clicker') { clickCount=0; document.getElementById('clkScore').innerText='0'; }
+    }
+
+    function closeGame() {
+        document.getElementById('game-view').style.display = 'none';
+        document.getElementById('menu-view').style.display = 'block';
+    }
+
+    function updateScore(amount) {
+        sessionPoints += amount;
+        let el = document.getElementById('sessionScore');
+        el.innerText = sessionPoints;
+        el.style.color = sessionPoints >= 0 ? 'lime' : 'red';
+    }
+
+    function exitApp() {
+        let msg = sessionPoints >= 0 ? `Won ${sessionPoints} Points` : `Lost ${sessionPoints} Points`;
+        tg.sendData(JSON.stringify({ points: sessionPoints, msg: msg }));
+    }
+
+    // --- MODAL ---
+    function showModal(title, pts, msg, win) {
+        document.getElementById('mHead').innerText = title;
+        document.getElementById('mPts').innerText = pts > 0 ? "+"+pts : pts;
+        document.getElementById('mPts').style.color = win ? 'lime' : 'red';
+        document.getElementById('mMsg').innerText = msg;
         document.getElementById('modal').style.display = 'flex';
-        if(win) { confetti({particleCount:80, spread:60, origin:{y:0.6}}); haptic('heavy'); } else haptic('error');
-        lastData = {game:'multi', points:p, msg:m};
-    }
-    let lastData = null;
-    function closeModal() {
-        document.getElementById('modal').style.display='none';
-        if(lastData) { tg.sendData(JSON.stringify(lastData)); lastData=null; }
-    }
-
-    /* --- 1. DICE WAR --- */
-    function playDiceWar() {
-        let u = Math.floor(Math.random()*6)+1, c = Math.floor(Math.random()*6)+1;
-        document.getElementById('dUser').innerText = u; document.getElementById('dCpu').innerText = c;
-        if(u>c) showModal('YOU WON!', 20, `You: ${u} vs CPU: ${c}`, true);
-        else if(u<c) showModal('YOU LOST', -10, `You: ${u} vs CPU: ${c}`, false);
-        else showModal('DRAW', 0, 'Same Roll', false);
-    }
-
-    /* --- 2. ODD EMOJI --- */
-    function initEmoji() {
-        let ems = ['😀','😎','🤖','👽','👻','🤡']; let main = ems[Math.floor(Math.random()*ems.length)];
-        let odd = ems.filter(e=>e!=main)[0] || '💩';
-        let g = document.getElementById('emojiArea'); g.innerHTML = '<div class="emoji-grid" id="eg"></div>';
-        let pos = Math.floor(Math.random()*12);
-        for(let i=0; i<12; i++) {
-            let d = document.createElement('div'); d.className='emoji-cell';
-            d.innerText = (i===pos) ? odd : main;
-            d.onclick = () => { if(i===pos) showModal('FOUND!', 15, 'Sharp Eyes!', true); else showModal('WRONG', -5, 'Try Again', false); }
-            document.getElementById('eg').appendChild(d);
-        }
-        document.getElementById('btnEmoji').innerText = "RESET";
-    }
-
-    /* --- 3. TIME STOPPER --- */
-    let tInt, tStart;
-    function playTimeStop() {
-        let b = document.getElementById('btnTime'), d = document.getElementById('stopTimer');
-        if(b.innerText === "START") {
-            b.innerText = "STOP"; tStart = Date.now();
-            tInt = setInterval(()=> { d.innerText = ((Date.now()-tStart)/1000).toFixed(2); }, 30);
+        
+        updateScore(pts);
+        
+        if(win) {
+            tg.HapticFeedback.impactOccurred('heavy');
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         } else {
-            clearInterval(tInt);
-            let final = parseFloat(d.innerText);
-            b.innerText = "START";
-            if(final >= 0.95 && final <= 1.05) showModal('PERFECT!', 30, `Time: ${final}s`, true);
-            else showModal('MISSED', -5, `Target 1.00s (Got ${final}s)`, false);
+            tg.HapticFeedback.impactOccurred('error');
         }
     }
-
-    /* --- 4. COLOR TRAP --- */
-    let colAns;
-    function initColor() {
-        let cols = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
-        let css = ['red', '#00f3ff', '#0aff0a', '#ffd700'];
-        let tIdx = Math.floor(Math.random()*4), cIdx = Math.floor(Math.random()*4);
-        let el = document.getElementById('colText');
-        el.innerText = cols[tIdx]; el.style.color = css[cIdx];
-        colAns = (tIdx === cIdx); // True if text matches color logic (simplified to index match here)
-        // Correction: Stroop usually asks "Is the ink color matching the word?"
-        // Let's make it simpler: Does text MEAN the color shown?
-        // Actually for game: Does Text == Ink Color?
+    function hideModal() {
+        document.getElementById('modal').style.display = 'none';
     }
-    function checkColor(uGuess) {
-        if(colAns === uGuess) showModal('CORRECT', 10, 'Brain Power!', true);
-        else showModal('WRONG', -5, 'Focus!', false);
-        initColor();
-    }
-    initColor();
 
-    /* --- 5. NUMBER FLOW --- */
-    let numSeq = [], numStep = 1;
-    function initNumFlow() {
-        numSeq = [1,2,3,4,5,6]; numStep = 1;
-        numSeq.sort(()=>Math.random()-0.5);
-        let g = document.getElementById('numGrid'); g.innerHTML = '';
-        numSeq.forEach(n => {
-            let b = document.createElement('div'); b.className = 'num-btn'; b.innerText = n;
-            b.onclick = function() {
-                if(n === numStep) {
-                    this.style.background = 'var(--neon-green)'; numStep++; haptic();
-                    if(numStep > 6) showModal('FLOW COMPLETE', 20, 'Fast Fingers!', true);
-                } else { showModal('WRONG ORDER', -5, 'Start from 1', false); initNumFlow(); }
+    // ================= GAME LOGIC =================
+
+    // 1. LUCKY 7
+    function playLucky() {
+        let v = parseInt(document.getElementById('luckyIn').value);
+        if(!v || v<1 || v>10) return tg.showAlert("Enter 1-10");
+        let r = Math.floor(Math.random()*10)+1;
+        if(v === r) showModal("JACKPOT!", 50, "Number matched!", true);
+        else showModal("MISSED", -10, "Result was "+r, false);
+    }
+
+    // 2. MATH
+    let mA, mB;
+    function initMath() { mA=Math.floor(Math.random()*10)+1; mB=Math.floor(Math.random()*10)+1; document.getElementById('mathQ').innerText = `${mA} + ${mB}`; document.getElementById('mathIn').value=''; }
+    function checkMath() {
+        let ans = parseInt(document.getElementById('mathIn').value);
+        if(ans === mA+mB) { showModal("CORRECT", 10, "Math Whiz!", true); initMath(); }
+        else showModal("WRONG", -5, "Bad Math!", false);
+    }
+
+    // 3. TTT
+    let tb = Array(9).fill(null);
+    function initTTT() {
+        tb.fill(null); let g = document.getElementById('tttGrid'); g.innerHTML='';
+        for(let i=0; i<9; i++) {
+            let d = document.createElement('div'); d.className = 'ttt-cell';
+            d.onclick = () => moveTTT(i, d); g.appendChild(d);
+        }
+    }
+    function moveTTT(i, el) {
+        if(tb[i]) return;
+        tb[i] = 'X'; el.innerText = 'X'; el.style.color = 'cyan';
+        // AI Move
+        setTimeout(() => {
+            let empty = tb.map((v,k) => v===null?k:null).filter(v=>v!==null);
+            if(empty.length > 0) {
+                let r = empty[Math.floor(Math.random()*empty.length)];
+                tb[r] = 'O'; document.getElementById('tttGrid').children[r].innerText = 'O';
+                document.getElementById('tttGrid').children[r].style.color = 'red';
+                if(checkWin('O')) { showModal("DEFEAT", -10, "AI Won", false); return; }
+            }
+            if(checkWin('X')) showModal("VICTORY", 20, "You Won!", true);
+            else if(!tb.includes(null)) showModal("DRAW", 0, "No Winner", false);
+        }, 300);
+    }
+    function checkWin(p) { return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(c => tb[c[0]]==p && tb[c[1]]==p && tb[c[2]]==p); }
+
+    // 4. MEMORY
+    let mc=[], mok=0;
+    function initMemory() {
+        let icons = ['🚀','🚀','💎','💎','🔥','🔥','💀','💀'].sort(()=>Math.random()-0.5);
+        let g = document.getElementById('memGrid'); g.innerHTML=''; mc=[]; mok=0;
+        icons.forEach(i => {
+            let d = document.createElement('div'); d.className = 'mem-card';
+            d.onclick = () => {
+                if(d.innerText || mc.length>=2) return;
+                d.innerText = i; d.style.background = '#555'; mc.push(d);
+                if(mc.length===2) setTimeout(checkMem, 500);
             };
-            g.appendChild(b);
+            g.appendChild(d);
         });
     }
-
-    /* --- EXISTING GAMES LOGIC (Compressed) --- */
-    // Memory
-    let mC=[], mOk=0; 
-    function initMemory() { 
-        let g=document.getElementById('memGrid'); g.innerHTML=''; mC=[]; mOk=0;
-        let i=['🚀','🚀','💎','💎','💣','💣','👻','👻'].sort(()=>Math.random()-.5);
-        i.forEach(x=>{let d=document.createElement('div'); d.style.background='rgba(255,255,255,0.1)'; d.style.height='30px'; d.onclick=()=>fMem(d,x); g.appendChild(d)}); 
-    }
-    function fMem(d,x){ 
-        if(d.innerText||mC.length>1)return; d.innerText=x; d.style.background='#555'; mC.push(d); 
-        if(mC.length==2) setTimeout(()=>{ 
-            if(mC[0].innerText==mC[1].innerText){mC.forEach(z=>z.style.background='var(--neon-green)'); mOk++; if(mOk==4)showModal('WON',40,'Cleared',true)} 
-            else mC.forEach(z=>{z.innerText='';z.style.background='rgba(255,255,255,0.1)'}); mC=[]; 
-        },500); 
+    function checkMem() {
+        if(mc[0].innerText === mc[1].innerText) {
+            mc.forEach(x => x.style.background = 'lime'); mok++;
+            if(mok===4) showModal("CLEARED!", 40, "Great Memory", true);
+        } else {
+            mc.forEach(x => { x.innerText=''; x.style.background='rgba(255,255,255,0.1)'; });
+        }
+        mc = [];
     }
 
-    // Precision
-    let pAnim, pP=0, pD=2;
-    function playPrec(){ 
-        let b=document.getElementById('btnPrec'); 
-        if(b.innerText=="START"){ b.innerText="STOP"; pP=0; (function L(){pP+=pD; if(pP>100||pP<0)pD*=-1; document.getElementById('precMark').style.left=pP+'%'; pAnim=requestAnimationFrame(L)})(); } 
-        else { cancelAnimationFrame(pAnim); b.innerText="START"; if(pP>40&&pP<60)showModal('HIT',20,'Nice',true); else showModal('MISS',-5,'Fail',false); } 
+    // 5. SPIN
+    function playSpin() {
+        let w = document.getElementById('wheel');
+        let deg = 1000 + Math.random()*2000;
+        w.style.transform = `rotate(${deg}deg)`;
+        setTimeout(() => {
+            let win = Math.random() > 0.5;
+            showModal(win?"LUCKY":"UNLUCKY", win?30:-20, win?"Big Prize!":"Nothing", win);
+        }, 3200);
     }
 
-    // Reflex
-    function initRef(){ 
-        let b=document.getElementById('refBox'); b.style.background='#333'; 
-        setTimeout(()=>{ b.style.background='#0f0'; let s=Date.now(); b.onclick=()=>{let t=Date.now()-s; showModal(t<400?'FAST':'SLOW',t<400?20:-5,t+'ms',t<400); b.onclick=null;} }, 1000+Math.random()*2000); 
+    // 6. DICE
+    function playDice() {
+        let u = Math.floor(Math.random()*6)+1;
+        let c = Math.floor(Math.random()*6)+1;
+        document.getElementById('d1').innerText = u;
+        document.getElementById('d2').innerText = c;
+        if(u>c) showModal("WINNER", 20, `You: ${u} > CPU: ${c}`, true);
+        else if(u<c) showModal("LOSER", -10, `You: ${u} < CPU: ${c}`, false);
+        else showModal("DRAW", 0, "Roll Again", false);
     }
 
-    // Simon, HighLow, Math, RPS, Virus, Lucky, Slot, Typer, Clicker, TTT, Wheel, Scratch 
-    // (Implemented simplified versions for brevity to fit all 20)
-    function playHL(g){ let c=parseInt(document.getElementById('hlNum').innerText), n=Math.floor(Math.random()*100); document.getElementById('hlNum').innerText=n; let w=(g=='high'&&n>c)||(g=='low'&&n<c); showModal(w?'WON':'LOST',w?10:-5,'Next: '+n,w); }
-    function checkMath(){ let a=parseInt(document.getElementById('mAns').value); if(a==(mA+mB))showModal('OK',5,'Good',true); else showModal('NO',-5,'Bad',false); initMath(); }
-    let mA,mB; function initMath(){ mA=Math.floor(Math.random()*10); mB=Math.floor(Math.random()*10); document.getElementById('mQ').innerText=`${mA} + ${mB}`; } initMath();
-    function playRPS(u){ let c=['r','p','s'][Math.floor(Math.random()*3)]; let w=(u==c)?0:((u=='r'&&c=='s')||(u=='p'&&c=='r')||(u=='s'&&c=='p'))?1:-1; showModal(w==1?'WIN':w==0?'DRAW':'LOSE',w==1?15:w==-1?-5:0,'Cpu: '+c,w==1); }
-    function initVirus(){ let g=document.getElementById('vGrid'); g.innerHTML=''; for(let i=0;i<9;i++){let d=document.createElement('div'); d.innerText='🦠'; d.style.opacity=0; d.onclick=function(){this.style.opacity=0; vSc++;}; g.appendChild(d); setTimeout(()=>runV(d), Math.random()*2000);} vSc=0; setTimeout(()=>{showModal('DONE',vSc>=8?20:-5,'Score: '+vSc,vSc>=8)}, 5000); } 
-    function runV(d){ d.style.opacity=1; setTimeout(()=>d.style.opacity=0, 600); } let vSc=0;
-    function playLucky(){ let v=document.getElementById('luckyIn').value, r=Math.floor(Math.random()*10)+1; showModal(v==r?'JACKPOT':'NOPE',v==r?50:-10,'Was '+r,v==r); }
-    function playSlot(){ let s=['7','🍒','🍋']; let r=[0,0,0].map(()=>s[Math.floor(Math.random()*3)]); document.getElementById('sl1').innerText=r[0]; document.getElementById('sl2').innerText=r[1]; document.getElementById('sl3').innerText=r[2]; let w=(r[0]==r[1]&&r[1]==r[2]); showModal(w?'BIG WIN':'LOSS',w?100:-10,'',w); }
-    function initType(){ let w='CODE'; document.getElementById('tWord').innerText=w; let i=document.getElementById('tIn'); i.value=''; i.focus(); let s=Date.now(); i.oninput=()=>{if(i.value.toUpperCase()==w)showModal('DONE',10,(Date.now()-s)+'ms',true)}; }
-    let cC=0; function tapClick(){ if(cC==0)setTimeout(()=>{showModal('TIME',cC>=30?15:0,'Clicks: '+cC,cC>=30); cC=0;},3000); cC++; document.getElementById('clkCnt').innerText=cC; }
-    
-    // TTT, Simon, Wheel, Scratch (Basic Placeholders to ensure 20 working games)
-    let tb=['','','','','','','','','']; function initTTT(){tb.fill(''); let g=document.getElementById('ttt'); g.innerHTML=''; tb.forEach((_,i)=>{let d=document.createElement('div'); d.style.background='#333'; d.style.height='25px'; d.onclick=()=>{if(!tb[i]){tb[i]='X';d.innerText='X'; setTimeout(()=>{let e=tb.map((v,k)=>v==''?k:null).filter(x=>x!=null); if(e.length){let r=e[Math.floor(Math.random()*e.length)]; tb[r]='O'; g.children[r].innerText='O';}},200)}}; g.appendChild(d)});} initTTT();
-    function initSimon() { let seq=[0,1,2,3]; let i=0; let t=setInterval(()=>{document.getElementById('s'+(seq[i]+1)).style.opacity=1; setTimeout(()=>document.getElementById('s'+(seq[i]+1)).style.opacity=0.3,300); i++; if(i>3){clearInterval(t); showModal('DONE',30,'Memory OK',true)}}, 600); }
-    function spinWhl(){ let w=document.getElementById('whl'); w.style.transform=`rotate(${720+Math.random()*360}deg)`; setTimeout(()=>showModal('RESULT',Math.random()>.5?20:-10,'Wheel Stop',true), 2000); }
-    function initScr(){ let c=document.getElementById('scrCv'), x=c.getContext('2d'); x.fillStyle='#999'; x.fillRect(0,0,300,50); document.getElementById('scrPrz').innerText=Math.random()>.5?'+20':'0'; c.onmousemove=e=>{x.clearRect(e.offsetX,e.offsetY,10,10)}; setTimeout(()=>showModal('SCRATCHED',10,'Done',true),3000); }
+    // 7. CLICKER
+    let clickCount=0, clickActive=false;
+    function tapClick() {
+        if(!clickActive) {
+            clickActive = true; clickCount=0;
+            document.getElementById('btnClick').innerText = "TAP TAP TAP!";
+            setTimeout(() => {
+                clickActive = false;
+                document.getElementById('btnClick').innerText = "START";
+                if(clickCount >= 30) showModal("GODLIKE", 15, `Clicks: ${clickCount}`, true);
+                else showModal("TOO SLOW", 0, `Clicks: ${clickCount}/30`, false);
+            }, 3000);
+        } else {
+            clickCount++;
+            document.getElementById('clkScore').innerText = clickCount;
+        }
+    }
+
+    // 8. RPS
+    function playRPS(u) {
+        let ops = ['r','p','s'];
+        let c = ops[Math.floor(Math.random()*3)];
+        let res = (u==c)?'d':((u=='r'&&c=='s')||(u=='p'&&c=='r')||(u=='s'&&c=='p'))?'w':'l';
+        let txt = c === 'r' ? '👊' : c === 'p' ? '✋' : '✌️';
+        document.getElementById('rpsRes').innerText = "CPU chose " + txt;
+        
+        if(res === 'w') showModal("YOU WIN", 15, "CPU chose " + txt, true);
+        else if(res === 'l') showModal("YOU LOSE", -5, "CPU chose " + txt, false);
+        else showModal("DRAW", 0, "Try again", false);
+    }
 
 </script>
 </body>

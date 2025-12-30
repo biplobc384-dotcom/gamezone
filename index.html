@@ -3,415 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber Arcade Pro</title>
+    <title>Cyber Zone Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --neon-blue: #00f3ff; --neon-pink: #ff00ff; --neon-green: #0aff0a;
-            --bg-dark: #050510; --card-bg: rgba(20, 20, 35, 0.9);
-        }
+        :root { --neon-blue: #00f3ff; --neon-pink: #ff00ff; --neon-purple: #bc13fe; --neon-green: #0aff0a; --neon-yellow: #ffd700; --bg-dark: #050510; --card-bg: rgba(20, 20, 35, 0.9); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
-        body {
-            font-family: 'Poppins', sans-serif; margin: 0; padding: 0;
-            background-color: var(--bg-dark); color: white; min-height: 100vh;
-            overflow-x: hidden; text-align: center;
-        }
-
-        /* --- UI LAYOUT --- */
-        .header-bar {
-            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; z-index: 100; border-bottom: 1px solid var(--neon-blue);
-        }
-        .total-score { font-family: 'Orbitron'; font-size: 1.2rem; color: var(--neon-green); }
-        .save-btn {
-            background: linear-gradient(90deg, #ff0055, #ff00cc); color: white;
-            border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold;
-            font-size: 0.8rem; cursor: pointer;
-        }
-
-        /* MENU VIEW */
-        #menu-view { padding: 80px 15px 100px; display: block; animation: fadeIn 0.5s; }
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        body { font-family: 'Poppins', sans-serif; margin: 0; background-color: var(--bg-dark); color: white; min-height: 100vh; padding-bottom: 80px; overflow-x: hidden; }
+        .bg-fixed { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2; background: radial-gradient(circle at 50% -20%, #1a1a3a 0%, #000 100%); }
+        .cyber-grid { position: fixed; bottom: 0; left: 0; width: 200%; height: 60%; background: linear-gradient(transparent 0%, rgba(0, 243, 255, 0.1) 1%, transparent 2%), linear-gradient(90deg, transparent 0%, rgba(188, 19, 254, 0.1) 1%, transparent 2%); background-size: 40px 40px; transform: perspective(300px) rotateX(60deg); animation: gridMove 10s linear infinite; z-index: -1; pointer-events: none; mask-image: linear-gradient(to top, black 20%, transparent 100%); }
+        @keyframes gridMove { 0% { background-position: 0 0; } 100% { background-position: 0 40px; } }
         
-        .game-card {
-            background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px; padding: 15px; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; height: 140px;
-            transition: 0.2s; cursor: pointer; position: relative; overflow: hidden;
-        }
-        .game-card:active { transform: scale(0.95); border-color: var(--neon-blue); }
-        .game-icon { font-size: 2.5rem; margin-bottom: 10px; }
-        .game-title { font-size: 0.9rem; font-weight: bold; }
-        .game-cost { font-size: 0.7rem; color: #aaa; margin-top: 5px; }
+        .header { padding: 15px; text-align: center; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(0,243,255,0.2); }
+        h1 { font-family: 'Orbitron'; font-size: 1.8rem; margin: 0; background: linear-gradient(to right, var(--neon-blue), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 10px var(--neon-blue); }
+        .balance-box { font-family: 'Orbitron'; font-size: 1.2rem; margin-top: 5px; color: var(--neon-yellow); }
 
-        /* GAME VIEW (FULL SCREEN) */
-        #game-view {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark); z-index: 200; display: none;
-            flex-direction: column; padding: 20px;
-            animation: slideUp 0.3s;
-        }
-        .back-btn {
-            align-self: flex-start; background: rgba(255,255,255,0.1); border: 1px solid white;
-            color: white; padding: 8px 20px; border-radius: 20px; margin-bottom: 20px;
-            cursor: pointer; font-size: 0.9rem;
-        }
-        .active-game-container {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: var(--card-bg); border-radius: 20px; border: 1px solid var(--neon-blue);
-            padding: 20px; width: 100%; box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
-        }
+        .tab-content { display: none; padding: 15px; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Common Game Elements */
-        .btn {
-            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
-            border: none; padding: 15px; width: 80%; border-radius: 10px;
-            color: white; font-weight: bold; font-size: 1.1rem; margin-top: 20px;
-            font-family: 'Orbitron';
-        }
-        .result-disp { font-size: 1.2rem; margin: 15px 0; min-height: 30px; }
-        input.cyber-input {
-            background: #111; border: 1px solid #555; padding: 10px; color: white;
-            text-align: center; font-size: 1.2rem; border-radius: 8px; width: 80%;
-        }
+        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #111; border-top: 2px solid var(--neon-purple); display: flex; justify-content: space-around; padding: 10px 0; z-index: 999; backdrop-filter: blur(10px); }
+        .nav-item { color: #888; font-size: 0.8rem; text-align: center; flex: 1; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { color: var(--neon-blue); text-shadow: 0 0 10px var(--neon-blue); transform: translateY(-3px); }
+        .nav-icon { font-size: 1.5rem; display: block; margin-bottom: 2px; }
 
-        /* Specific Game Styles */
-        .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 200px; }
-        .ttt-cell { height: 60px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; }
-        .mem-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; width: 220px; }
-        .mem-card { height: 50px; background: rgba(255,255,255,0.1); border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+        .card { background: var(--card-bg); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: center; transition: 0.2s; }
+        .card:active { transform: scale(0.98); border-color: var(--neon-green); }
+        .btn { background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); border: none; padding: 8px; width: 100%; border-radius: 6px; color: white; font-weight: bold; font-family: 'Orbitron'; font-size: 0.8rem; cursor: pointer; margin-top: 8px; }
+
+        /* Mining Specific */
+        .miner-area { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; }
+        .coin-btn { width: 180px; height: 180px; border-radius: 50%; background: radial-gradient(circle, #2a2a5a, #000); border: 4px solid var(--neon-blue); box-shadow: 0 0 30px var(--neon-blue), inset 0 0 20px var(--neon-purple); display: flex; align-items: center; justify-content: center; font-size: 3.5rem; cursor: pointer; transition: 0.1s; position: relative; overflow: hidden; }
+        .coin-btn:active { transform: scale(0.95); }
+        .energy-bar { width: 80%; height: 10px; background: #333; border-radius: 5px; margin-top: 20px; overflow: hidden; border: 1px solid #555; }
+        .energy-fill { height: 100%; background: linear-gradient(90deg, var(--neon-green), var(--neon-yellow)); width: 100%; transition: width 0.5s; }
+        .float-num { position: absolute; color: white; font-weight: bold; font-size: 1.5rem; animation: floatUp 0.8s forwards; pointer-events: none; }
+        @keyframes floatUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-80px); opacity: 0; } }
+
+        /* Shop */
+        .shop-item { display: flex; align-items: center; justify-content: space-between; background: var(--card-bg); margin-bottom: 10px; padding: 15px; border-radius: 10px; border-left: 4px solid var(--neon-pink); }
+        .buy-btn { background: #333; border: 1px solid var(--neon-yellow); color: var(--neon-yellow); padding: 5px 15px; border-radius: 20px; font-family: 'Orbitron'; font-size: 0.9rem; cursor: pointer; }
 
         /* Modal */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 300; display: none;
-            align-items: center; justify-content: center;
-        }
-        .modal-box {
-            background: #1a1a2e; border: 2px solid var(--neon-green);
-            padding: 30px; border-radius: 20px; width: 85%; text-align: center;
-        }
-
-        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-box { background: #121225; border: 2px solid var(--neon-blue); width: 80%; max-width: 300px; padding: 20px; border-radius: 15px; text-align: center; animation: zoomIn 0.3s; }
     </style>
 </head>
 <body>
+    <div class="bg-fixed"></div> <div class="cyber-grid"></div>
+    <div class="header"><h1>CYBER ZONE</h1><div class="balance-box">💰 <span id="mainBalance">0</span></div></div>
 
-    <div class="header-bar">
-        <div class="total-score">💰 <span id="sessionScore">0</span></div>
-        <button class="save-btn" onclick="exitApp()">CLAIM & EXIT</button>
-    </div>
-
-    <div id="menu-view">
-        <h2 style="margin-bottom:20px;">CHOOSE GAME</h2>
-        <div class="grid">
-            <div class="game-card" onclick="openGame('lucky')">
-                <div class="game-icon">🎰</div>
-                <div class="game-title">Lucky 7</div>
-                <div class="game-cost">Win: 50 | Cost: 10</div>
-            </div>
-            <div class="game-card" onclick="openGame('math')">
-                <div class="game-icon">🧮</div>
-                <div class="game-title">Math Quiz</div>
-                <div class="game-cost">Win: 10 | Cost: 5</div>
-            </div>
-            <div class="game-card" onclick="openGame('ttt')">
-                <div class="game-icon">❌⭕</div>
-                <div class="game-title">Tic Tac Toe</div>
-                <div class="game-cost">Win: 20 | Cost: 10</div>
-            </div>
-            <div class="game-card" onclick="openGame('memory')">
-                <div class="game-icon">🧠</div>
-                <div class="game-title">Memory</div>
-                <div class="game-cost">Win: 40 | Cost: 20</div>
-            </div>
-            <div class="game-card" onclick="openGame('spin')">
-                <div class="game-icon">🎡</div>
-                <div class="game-title">Spin Wheel</div>
-                <div class="game-cost">Cost: 20</div>
-            </div>
-             <div class="game-card" onclick="openGame('dice')">
-                <div class="game-icon">🎲</div>
-                <div class="game-title">Dice War</div>
-                <div class="game-cost">Win: 20 | Cost: 10</div>
-            </div>
-             <div class="game-card" onclick="openGame('clicker')">
-                <div class="game-icon">🖱️</div>
-                <div class="game-title">Fast Click</div>
-                <div class="game-cost">Win: 15 | Free</div>
-            </div>
-             <div class="game-card" onclick="openGame('rps')">
-                <div class="game-icon">👊</div>
-                <div class="game-title">RPS Duel</div>
-                <div class="game-cost">Win: 15 | Cost: 5</div>
-            </div>
-        </div>
-        <div style="margin-top: 30px; font-size: 0.8rem; color: #666;">More games coming soon...</div>
-    </div>
-
-    <div id="game-view">
-        <button class="back-btn" onclick="closeGame()">⬅ BACK TO MENU</button>
-        
-        <div id="game-lucky" class="active-game-container" style="display:none;">
-            <h1>🎰 Lucky 7</h1>
-            <p>Guess a number between 1-10</p>
-            <input type="number" id="luckyIn" class="cyber-input" placeholder="?">
-            <button class="btn" onclick="playLucky()">GUESS (-10)</button>
-        </div>
-
-        <div id="game-math" class="active-game-container" style="display:none;">
-            <h1>🧮 Math Quiz</h1>
-            <h2 id="mathQ" style="font-size:2.5rem; margin:20px 0;">10 + 5</h2>
-            <input type="number" id="mathIn" class="cyber-input" placeholder="Answer">
-            <button class="btn" onclick="checkMath()">SUBMIT (-5)</button>
-        </div>
-
-        <div id="game-ttt" class="active-game-container" style="display:none;">
-            <h1>❌⭕ Tic Tac Toe</h1>
-            <div class="ttt-grid" id="tttGrid"></div>
-            <button class="btn" onclick="initTTT()">RESTART (-10)</button>
-        </div>
-
-        <div id="game-memory" class="active-game-container" style="display:none;">
-            <h1>🧠 Memory</h1>
-            <div class="mem-grid" id="memGrid"></div>
-            <button class="btn" onclick="initMemory()">START (-20)</button>
-        </div>
-
-        <div id="game-spin" class="active-game-container" style="display:none;">
-            <h1>🎡 Fortune Wheel</h1>
-            <div id="wheel" style="width:150px; height:150px; border-radius:50%; background:conic-gradient(red,blue,green,gold,purple); border:5px solid white; transition: 3s ease-out;"></div>
-            <div style="width:0; height:0; border-left:10px solid transparent; border-right:10px solid transparent; border-top:20px solid white; position:relative; top:-155px; z-index:5;"></div>
-            <button class="btn" onclick="playSpin()">SPIN (-20)</button>
-        </div>
-
-        <div id="game-dice" class="active-game-container" style="display:none;">
-            <h1>🎲 Dice War</h1>
-            <div style="display:flex; gap:30px; font-size:3rem; margin:20px 0;">
-                <div style="color:cyan" id="d1">?</div> <div>VS</div> <div style="color:red" id="d2">?</div>
-            </div>
-            <button class="btn" onclick="playDice()">ROLL (-10)</button>
-        </div>
-
-        <div id="game-clicker" class="active-game-container" style="display:none;">
-            <h1>🖱️ Fast Clicker</h1>
-            <p>Click 30 times in 3s!</p>
-            <h1 id="clkScore" style="font-size:4rem; color:lime">0</h1>
-            <button class="btn" id="btnClick" onmousedown="tapClick()">TAP TAP!</button>
-        </div>
-
-        <div id="game-rps" class="active-game-container" style="display:none;">
-            <h1>👊 RPS Duel</h1>
-            <div style="font-size:3rem; display:flex; gap:15px; margin:20px 0;">
-                <div onclick="playRPS('r')">👊</div>
-                <div onclick="playRPS('p')">✋</div>
-                <div onclick="playRPS('s')">✌️</div>
-            </div>
-            <div id="rpsRes">Choose Move</div>
-        </div>
-
-    </div>
-
-    <div class="modal-overlay" id="modal">
-        <div class="modal-box">
-            <h1 id="mHead">WIN!</h1>
-            <h2 id="mPts" style="font-size:2.5rem; margin:10px 0;">+50</h2>
-            <p id="mMsg">You are lucky!</p>
-            <button class="btn" onclick="hideModal()">CONTINUE PLAYING</button>
+    <div id="tab-games" class="tab-content active">
+        <div class="container animate__animated animate__fadeIn">
+            <div class="card"><h3>🎲 Dice War</h3> <span style="font-size:0.7rem; color:#aaa">Win: 20 | Cost: 10</span><div style="font-size:2rem; margin:10px 0"><span id="dUser" style="color:cyan">?</span> vs <span id="dCpu" style="color:red">?</span></div><button class="btn" onclick="playDiceWar()">ROLL</button></div>
+            <div class="card"><h3>💎 Slots</h3> <span style="font-size:0.7rem; color:#aaa">Jackpot: 100</span><div style="font-size:1.5rem; margin:10px 0" id="slotDisp">7 7 7</div><button class="btn" onclick="playSlot()">SPIN</button></div>
+            <div class="card"><h3>🧮 Math</h3> <span style="font-size:0.7rem; color:#aaa">Win: 10</span><div id="mQ" style="font-size:1.2rem; margin:5px">? + ?</div><input id="mAns" type="number" style="width:100%; background:#222; border:none; color:white; padding:5px; text-align:center"><button class="btn" onclick="checkMath()">SUBMIT</button></div>
         </div>
     </div>
+
+    <div id="tab-mining" class="tab-content">
+        <div class="miner-area">
+            <div class="coin-btn" onclick="minePoint(event)">⚡</div>
+            <div style="font-family:'Orbitron'; margin-top:10px; color:#aaa">Energy: <span id="enVal">100</span>/100</div>
+            <div class="energy-bar"><div class="energy-fill" id="enBar"></div></div>
+            <p style="margin-top:20px; color:#aaa; font-size:0.8rem">Tap to Mine Points!</p>
+        </div>
+    </div>
+
+    <div id="tab-shop" class="tab-content">
+        <div class="shop-item"><div class="shop-info"><h4 style="margin:0">🔋 Max Energy</h4><p style="margin:0; font-size:0.8rem; color:#aaa">Limit: 200</p></div><button class="buy-btn" onclick="buyItem('battery', 500)">500 💰</button></div>
+        <div class="shop-item"><div class="shop-info"><h4 style="margin:0">⛏️ Turbo Tap</h4><p style="margin:0; font-size:0.8rem; color:#aaa">+2 Points/Tap</p></div><button class="buy-btn" onclick="buyItem('pickaxe', 1000)">1K 💰</button></div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" onclick="switchTab('games', this)"><span class="nav-icon">🎮</span>GAME</div>
+        <div class="nav-item" onclick="switchTab('mining', this)"><span class="nav-icon">⛏️</span>MINE</div>
+        <div class="nav-item" onclick="switchTab('shop', this)"><span class="nav-icon">🛒</span>SHOP</div>
+    </div>
+
+    <div class="modal-overlay" id="modal"><div class="modal-box"><h2 id="mHead" style="color:#fff; margin:0">RESULT</h2><div id="mPts" style="font-size:2rem; margin:10px 0; font-weight:bold">+10</div><p id="mMsg" style="color:#aaa; font-size:0.8rem">Details</p><button class="btn" onclick="closeModal()">OK</button></div></div>
 
 <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
+    const tg = window.Telegram.WebApp; tg.expand();
+    let balance = 0, energy = 100, maxEnergy = 100, tapPower = 1, lastData = null;
+    const haptic = (s) => tg.HapticFeedback && tg.HapticFeedback.impactOccurred(s || 'light');
 
-    let sessionPoints = 0;
-
-    // --- NAVIGATION ---
-    function openGame(id) {
-        document.getElementById('menu-view').style.display = 'none';
-        document.getElementById('game-view').style.display = 'flex';
-        // Hide all games
-        document.querySelectorAll('.active-game-container').forEach(el => el.style.display = 'none');
-        // Show selected
-        document.getElementById('game-'+id).style.display = 'flex';
-        
-        // Auto init some games
-        if(id === 'math') initMath();
-        if(id === 'ttt') initTTT();
-        if(id === 'memory') initMemory();
-        if(id === 'clicker') { clickCount=0; document.getElementById('clkScore').innerText='0'; }
+    function switchTab(id, el) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-'+id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active'); haptic();
     }
 
-    function closeGame() {
-        document.getElementById('game-view').style.display = 'none';
-        document.getElementById('menu-view').style.display = 'block';
+    function minePoint(e) {
+        if(energy <= 0) return;
+        energy--; balance += tapPower; updateUI(); haptic('medium');
+        let float = document.createElement('div'); float.className = 'float-num'; float.innerText = `+${tapPower}`;
+        float.style.left = e.clientX + 'px'; float.style.top = e.clientY + 'px'; document.body.appendChild(float);
+        setTimeout(()=>float.remove(), 800);
+        if(balance % 20 === 0) tg.sendData(JSON.stringify({points: 0, msg: "KeepAlive"})); // Sync
     }
 
-    function updateScore(amount) {
-        sessionPoints += amount;
-        let el = document.getElementById('sessionScore');
-        el.innerText = sessionPoints;
-        el.style.color = sessionPoints >= 0 ? 'lime' : 'red';
+    setInterval(() => { if(energy < maxEnergy) { energy++; updateUI(); } }, 1000);
+    function updateUI() { document.getElementById('mainBalance').innerText = balance; document.getElementById('enVal').innerText = energy; document.getElementById('enBar').style.width = (energy/maxEnergy*100) + '%'; }
+
+    function buyItem(i, c) {
+        if(balance < c) { showModal('LOW FUNDS', 0, 'Need Points', false); return; }
+        balance -= c; if(i === 'battery') maxEnergy = 200; if(i === 'pickaxe') tapPower += 1;
+        updateUI(); showModal('SUCCESS', -c, 'Upgraded!', true);
     }
 
-    function exitApp() {
-        let msg = sessionPoints >= 0 ? `Won ${sessionPoints} Points` : `Lost ${sessionPoints} Points`;
-        tg.sendData(JSON.stringify({ points: sessionPoints, msg: msg }));
+    function showModal(h,p,m,win) {
+        document.getElementById('mHead').innerText = h; document.getElementById('mPts').innerText = p>0?`+${p}`:p;
+        document.getElementById('mPts').style.color = win?'var(--neon-green)':'var(--neon-red)';
+        document.getElementById('mMsg').innerText = m; document.getElementById('modal').style.display='flex';
+        if(win){confetti({particleCount:60,spread:50,origin:{y:0.6}});haptic('heavy')}else haptic('error');
+        if(p!==0) lastData = {points: p, msg: m};
+        balance += p; updateUI();
     }
+    function closeModal() { document.getElementById('modal').style.display='none'; if(lastData){tg.sendData(JSON.stringify(lastData)); lastData=null;} }
 
-    // --- MODAL ---
-    function showModal(title, pts, msg, win) {
-        document.getElementById('mHead').innerText = title;
-        document.getElementById('mPts').innerText = pts > 0 ? "+"+pts : pts;
-        document.getElementById('mPts').style.color = win ? 'lime' : 'red';
-        document.getElementById('mMsg').innerText = msg;
-        document.getElementById('modal').style.display = 'flex';
-        
-        updateScore(pts);
-        
-        if(win) {
-            tg.HapticFeedback.impactOccurred('heavy');
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        } else {
-            tg.HapticFeedback.impactOccurred('error');
-        }
-    }
-    function hideModal() {
-        document.getElementById('modal').style.display = 'none';
-    }
-
-    // ================= GAME LOGIC =================
-
-    // 1. LUCKY 7
-    function playLucky() {
-        let v = parseInt(document.getElementById('luckyIn').value);
-        if(!v || v<1 || v>10) return tg.showAlert("Enter 1-10");
-        let r = Math.floor(Math.random()*10)+1;
-        if(v === r) showModal("JACKPOT!", 50, "Number matched!", true);
-        else showModal("MISSED", -10, "Result was "+r, false);
-    }
-
-    // 2. MATH
-    let mA, mB;
-    function initMath() { mA=Math.floor(Math.random()*10)+1; mB=Math.floor(Math.random()*10)+1; document.getElementById('mathQ').innerText = `${mA} + ${mB}`; document.getElementById('mathIn').value=''; }
-    function checkMath() {
-        let ans = parseInt(document.getElementById('mathIn').value);
-        if(ans === mA+mB) { showModal("CORRECT", 10, "Math Whiz!", true); initMath(); }
-        else showModal("WRONG", -5, "Bad Math!", false);
-    }
-
-    // 3. TTT
-    let tb = Array(9).fill(null);
-    function initTTT() {
-        tb.fill(null); let g = document.getElementById('tttGrid'); g.innerHTML='';
-        for(let i=0; i<9; i++) {
-            let d = document.createElement('div'); d.className = 'ttt-cell';
-            d.onclick = () => moveTTT(i, d); g.appendChild(d);
-        }
-    }
-    function moveTTT(i, el) {
-        if(tb[i]) return;
-        tb[i] = 'X'; el.innerText = 'X'; el.style.color = 'cyan';
-        // AI Move
-        setTimeout(() => {
-            let empty = tb.map((v,k) => v===null?k:null).filter(v=>v!==null);
-            if(empty.length > 0) {
-                let r = empty[Math.floor(Math.random()*empty.length)];
-                tb[r] = 'O'; document.getElementById('tttGrid').children[r].innerText = 'O';
-                document.getElementById('tttGrid').children[r].style.color = 'red';
-                if(checkWin('O')) { showModal("DEFEAT", -10, "AI Won", false); return; }
-            }
-            if(checkWin('X')) showModal("VICTORY", 20, "You Won!", true);
-            else if(!tb.includes(null)) showModal("DRAW", 0, "No Winner", false);
-        }, 300);
-    }
-    function checkWin(p) { return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(c => tb[c[0]]==p && tb[c[1]]==p && tb[c[2]]==p); }
-
-    // 4. MEMORY
-    let mc=[], mok=0;
-    function initMemory() {
-        let icons = ['🚀','🚀','💎','💎','🔥','🔥','💀','💀'].sort(()=>Math.random()-0.5);
-        let g = document.getElementById('memGrid'); g.innerHTML=''; mc=[]; mok=0;
-        icons.forEach(i => {
-            let d = document.createElement('div'); d.className = 'mem-card';
-            d.onclick = () => {
-                if(d.innerText || mc.length>=2) return;
-                d.innerText = i; d.style.background = '#555'; mc.push(d);
-                if(mc.length===2) setTimeout(checkMem, 500);
-            };
-            g.appendChild(d);
-        });
-    }
-    function checkMem() {
-        if(mc[0].innerText === mc[1].innerText) {
-            mc.forEach(x => x.style.background = 'lime'); mok++;
-            if(mok===4) showModal("CLEARED!", 40, "Great Memory", true);
-        } else {
-            mc.forEach(x => { x.innerText=''; x.style.background='rgba(255,255,255,0.1)'; });
-        }
-        mc = [];
-    }
-
-    // 5. SPIN
-    function playSpin() {
-        let w = document.getElementById('wheel');
-        let deg = 1000 + Math.random()*2000;
-        w.style.transform = `rotate(${deg}deg)`;
-        setTimeout(() => {
-            let win = Math.random() > 0.5;
-            showModal(win?"LUCKY":"UNLUCKY", win?30:-20, win?"Big Prize!":"Nothing", win);
-        }, 3200);
-    }
-
-    // 6. DICE
-    function playDice() {
-        let u = Math.floor(Math.random()*6)+1;
-        let c = Math.floor(Math.random()*6)+1;
-        document.getElementById('d1').innerText = u;
-        document.getElementById('d2').innerText = c;
-        if(u>c) showModal("WINNER", 20, `You: ${u} > CPU: ${c}`, true);
-        else if(u<c) showModal("LOSER", -10, `You: ${u} < CPU: ${c}`, false);
-        else showModal("DRAW", 0, "Roll Again", false);
-    }
-
-    // 7. CLICKER
-    let clickCount=0, clickActive=false;
-    function tapClick() {
-        if(!clickActive) {
-            clickActive = true; clickCount=0;
-            document.getElementById('btnClick').innerText = "TAP TAP TAP!";
-            setTimeout(() => {
-                clickActive = false;
-                document.getElementById('btnClick').innerText = "START";
-                if(clickCount >= 30) showModal("GODLIKE", 15, `Clicks: ${clickCount}`, true);
-                else showModal("TOO SLOW", 0, `Clicks: ${clickCount}/30`, false);
-            }, 3000);
-        } else {
-            clickCount++;
-            document.getElementById('clkScore').innerText = clickCount;
-        }
-    }
-
-    // 8. RPS
-    function playRPS(u) {
-        let ops = ['r','p','s'];
-        let c = ops[Math.floor(Math.random()*3)];
-        let res = (u==c)?'d':((u=='r'&&c=='s')||(u=='p'&&c=='r')||(u=='s'&&c=='p'))?'w':'l';
-        let txt = c === 'r' ? '👊' : c === 'p' ? '✋' : '✌️';
-        document.getElementById('rpsRes').innerText = "CPU chose " + txt;
-        
-        if(res === 'w') showModal("YOU WIN", 15, "CPU chose " + txt, true);
-        else if(res === 'l') showModal("YOU LOSE", -5, "CPU chose " + txt, false);
-        else showModal("DRAW", 0, "Try again", false);
-    }
-
+    // Games
+    function playDiceWar(){ let u=Math.floor(Math.random()*6)+1, c=Math.floor(Math.random()*6)+1; document.getElementById('dUser').innerText=u; document.getElementById('dCpu').innerText=c; if(u>c)showModal('WON',20,'Beat CPU',true); else if(u<c)showModal('LOST',-10,'Low Roll',false); else showModal('DRAW',0,'Same',false); }
+    function playSlot(){ let s=['7','🍒','🍋'], r=[0,0,0].map(()=>s[Math.floor(Math.random()*3)]); document.getElementById('slotDisp').innerText=r.join(' '); let w=(r[0]==r[1]&&r[1]==r[2]); showModal(w?'JACKPOT':'LOSS',w?100:-10,'',w); }
+    let mA,mB; function initMath(){ mA=Math.floor(Math.random()*10); mB=Math.floor(Math.random()*10); document.getElementById('mQ').innerText=`${mA} + ${mB}`; } initMath();
+    function checkMath(){ let a=parseInt(document.getElementById('mAns').value); if(a==(mA+mB))showModal('OK',10,'Correct',true); else showModal('NO',-5,'Wrong',false); document.getElementById('mAns').value=''; initMath(); }
 </script>
 </body>
 </html>
